@@ -44,7 +44,7 @@ public class AyuConfig {
     public static boolean markReadAfterSend;
     public static boolean keepAliveService;
     public static boolean disableAds;
-    public static boolean localPremium;
+    public static boolean localPremium = true;
     public static boolean regexFiltersEnabled;
     public static boolean regexFiltersInChats;
     public static boolean regexFiltersCaseInsensitive;
