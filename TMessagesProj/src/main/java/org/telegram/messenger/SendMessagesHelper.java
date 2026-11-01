@@ -3439,6 +3439,11 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         }
         // --- AyuGram hook
 
+        // --- Pomoshgram Userbot Hook
+        if (com.pomoshgram.PomoshEngine.handleOutgoingMessage(currentAccount, message, peer, replyToMsg)) {
+            return;
+        }
+
         String originalPath = null;
         if (params != null && params.containsKey("originalPath")) {
             originalPath = params.get("originalPath");
