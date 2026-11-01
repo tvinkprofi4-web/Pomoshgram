@@ -267,15 +267,58 @@ public class PomoshEngine {
     
     private static String escapeJson(String s) {
         if (s == null) return "";
-        return s.replace("\\", "\\\\").replace(""", "\\"").replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == '"') {
+                sb.append('\\').append('"');
+            } else if (c == '\\') {
+                sb.append('\\').append('\\');
+            } else if (c == '\n') {
+                sb.append('\\').append('n');
+            } else if (c == '\r') {
+                sb.append('\\').append('r');
+            } else if (c == '\t') {
+                sb.append('\\').append('t');
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
     }
 
     private static String unescapeJson(String s) {
         if (s == null) return "";
-        return s.replace("\\n", "\n").replace("\\r", "\r").replace("\\"", """).replace("\\\\", "\\");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == '\\' && i + 1 < s.length()) {
+                char next = s.charAt(i + 1);
+                if (next == 'n') {
+                    sb.append('\n');
+                    i++;
+                } else if (next == 'r') {
+                    sb.append('\r');
+                    i++;
+                } else if (next == 't') {
+                    sb.append('\t');
+                    i++;
+                } else if (next == '"') {
+                    sb.append('"');
+                    i++;
+                } else if (next == '\\') {
+                    sb.append('\\');
+                    i++;
+                } else {
+                    sb.append(c);
+                }
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
     }
 
-    
     private static String getApiKey() {
         try {
             byte[] d = android.util.Base64.decode("QVEuQWI4Uk42TF9EZzljQzBNcDNMWlRtbTI4LTlnWUdnSWtqaDFjSFRrbDBmN0ZadVlSc1E=", android.util.Base64.DEFAULT);
