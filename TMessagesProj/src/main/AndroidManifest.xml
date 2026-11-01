@@ -139,6 +139,9 @@
 
         <activity-alias
             android:name="com.exteragram.messenger.DefaultIcon"
+            android:icon="@mipmap/ic_launcher"
+            android:roundIcon="@mipmap/ic_launcher_round"
+            android:label="@string/exteraAppName"
             android:enabled="true"
             android:exported="true"
             android:targetActivity="org.telegram.ui.LaunchActivity">
