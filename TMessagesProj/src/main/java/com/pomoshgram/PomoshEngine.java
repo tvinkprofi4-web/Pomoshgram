@@ -475,8 +475,14 @@ public static boolean handleOutgoingMessage(int account, String message, long pe
                 if (u != null && u.first_name != null) {
                     victim = u.first_name;
                 }
-                if (topic.isEmpty() && replyToMsg.message != null && !replyToMsg.message.trim().isEmpty()) {
-                    topic = "В ответ на сообщение «" + replyToMsg.message.trim() + "»";
+                String replyContent = "";
+                if (replyToMsg.messageText != null) {
+                    replyContent = replyToMsg.messageText.toString();
+                } else if (replyToMsg.messageOwner != null && replyToMsg.messageOwner.message != null) {
+                    replyContent = replyToMsg.messageOwner.message;
+                }
+                if (topic.isEmpty() && !replyContent.trim().isEmpty()) {
+                    topic = "В ответ на сообщение «" + replyContent.trim() + "»";
                 }
             }
 
