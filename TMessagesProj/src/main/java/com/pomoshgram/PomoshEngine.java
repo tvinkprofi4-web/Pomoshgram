@@ -281,7 +281,7 @@ public class PomoshEngine {
                 "\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"" + escapeJson(fullPrompt) + "\"}]}]," +
                 "\"generationConfig\":{\"temperature\":0.90,\"maxOutputTokens\":250}," +
                 "\"safetySettings\":[" +
-                "{\"category\":\"HARM_CATEGORY_HARASSMENT\",\"threshold\":\"BLOCK_NONE\ freeze\".replace(\" freeze\", \"\")}," +
+                "{\"category\":\"HARM_CATEGORY_HARASSMENT\",\"threshold\":\"BLOCK_NONE\"}," +
                 "{\"category\":\"HARM_CATEGORY_HATE_SPEECH\",\"threshold\":\"BLOCK_NONE\"}," +
                 "{\"category\":\"HARM_CATEGORY_SEXUALLY_EXPLICIT\",\"threshold\":\"BLOCK_NONE\"}," +
                 "{\"category\":\"HARM_CATEGORY_DANGEROUS_CONTENT\",\"threshold\":\"BLOCK_NONE\"}," +
