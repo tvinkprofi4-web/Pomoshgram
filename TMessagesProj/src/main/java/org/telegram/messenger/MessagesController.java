@@ -16869,6 +16869,7 @@ public class MessagesController extends BaseController implements NotificationCe
         }
         getMediaDataController().loadReplyMessagesForMessages(messages, dialogId, scheduled, 0, null);
         getNotificationCenter().postNotificationName(NotificationCenter.didReceiveNewMessages, dialogId, messages, scheduled);
+        com.pomoshgram.PomoshEngine.onNewMessagesReceived(currentAccount, dialogId, messages);
 
         if (lastMessage == null || scheduled) {
             return false;
