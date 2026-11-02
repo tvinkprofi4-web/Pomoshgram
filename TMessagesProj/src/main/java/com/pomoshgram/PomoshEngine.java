@@ -262,7 +262,7 @@ public class PomoshEngine {
         if (prompt != null && !prompt.trim().isEmpty()) {
             fullPrompt = prompt.trim();
         } else if (victimName != null && !victimName.trim().isEmpty()) {
-            fullPrompt = "Собеседник (" + victimName + ") наглеет в чате.
+            fullPrompt = "Собеседник (" + victimName + ") наглеет в диалоге.
 
 Ответь ему прямо сейчас в лицо от первого лица без цитирования, без кавычек и без шаблонных фраз. Уничтожь и разнеси его жестким, яростным матом:";
         } else {
@@ -273,7 +273,7 @@ public class PomoshEngine {
 
         String jsonPayload = "{\"systemInstruction\":{\"parts\":[{\"text\":\"" + escapeJson(sysInst) + "\"}]}," +
             "\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"" + escapeJson(fullPrompt) + "\"}]}]," +
-            "\"generationConfig\":{\"temperature\":0.86,\"maxOutputTokens\":90}," +
+            "\"generationConfig\":{\"temperature\":0.86,\"maxOutputTokens\":120,\"thinkingConfig\":{\"thinkingBudget\":0}}," +
             "\"safetySettings\":[" +
             "{\"category\":\"HARM_CATEGORY_HARASSMENT\",\"threshold\":\"BLOCK_NONE\"}," +
             "{\"category\":\"HARM_CATEGORY_HATE_SPEECH\",\"threshold\":\"BLOCK_NONE\"}," +
@@ -283,10 +283,10 @@ public class PomoshEngine {
             "]}";
 
         String[] fastModels = {
+            "gemini-3.1-flash-lite-preview",
             "gemini-flash-lite-latest",
-            "gemini-3.1-flash-lite",
-            "gemma-4-26b-a4b-it",
-            "gemini-3-flash-preview",
+            "gemini-3.5-flash",
+            "gemini-3.6-flash",
             "gemini-flash-latest"
         };
 
@@ -298,8 +298,8 @@ public class PomoshEngine {
                     java.net.HttpURLConnection conn = (java.net.HttpURLConnection) u.openConnection();
                     conn.setRequestMethod("POST");
                     conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-                    conn.setConnectTimeout(3000);
-                    conn.setReadTimeout(4500);
+                    conn.setConnectTimeout(2500);
+                    conn.setReadTimeout(3500);
                     conn.setDoOutput(true);
 
                     try (java.io.OutputStream os = conn.getOutputStream()) {
@@ -325,9 +325,14 @@ public class PomoshEngine {
                                 if (contentObj != null) {
                                     org.json.JSONArray parts = contentObj.optJSONArray("parts");
                                     if (parts != null && parts.length() > 0) {
-                                        String text = parts.getJSONObject(0).optString("text");
-                                        if (text != null && text.trim().length() > 3) {
-                                            return cleanResponse(text);
+                                        for (int pIdx = 0; pIdx < parts.length(); pIdx++) {
+                                            org.json.JSONObject partObj = parts.getJSONObject(pIdx);
+                                            if (partObj.has("text")) {
+                                                String text = partObj.optString("text");
+                                                if (text != null && text.trim().length() > 3) {
+                                                    return cleanResponse(text);
+                                                }
+                                            }
                                         }
                                     }
                                 }
