@@ -319,7 +319,7 @@ public class PomoshEngine {
                         }
                     }
                 } catch (Exception parseEx) {
-                    FileLog.e(parseEx);
+                    parseEx.printStackTrace();
                 }
             }
         } catch (Exception ignored) {
