@@ -257,72 +257,87 @@ public class PomoshEngine {
     }
 
     public static String fetchGeminiRoast(String prompt, String victimName) {
-        try {
-            String urlString = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key=" + getApiKey();
-            java.net.URL url = new java.net.URL(urlString);
-            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-            conn.setConnectTimeout(8000);
-            conn.setReadTimeout(12000);
-            conn.setDoOutput(true);
+        String sysInst = getEvilInstruction();
+        String fullPrompt;
+        if (prompt != null && !prompt.trim().isEmpty()) {
+            fullPrompt = prompt.trim();
+        } else if (victimName != null && !victimName.trim().isEmpty()) {
+            fullPrompt = "Собеседник (" + victimName + ") наглеет в чате.
 
-            String sysInst = getEvilInstruction();
-            String fullPrompt;
-            if (prompt != null && !prompt.trim().isEmpty()) {
-                fullPrompt = prompt.trim();
-            } else if (victimName != null && !victimName.trim().isEmpty()) {
-                fullPrompt = "Разнеси " + victimName + " в чате прямо сейчас:";
-            } else {
-                fullPrompt = "Разнеси собеседника прямо сейчас:";
-            }
+Ответь ему прямо сейчас в лицо от первого лица без цитирования, без кавычек и без шаблонных фраз. Уничтожь и разнеси его жестким, яростным матом:";
+        } else {
+            fullPrompt = "Собеседник наглеет в диалоге.
 
-            String jsonPayload = "{\"systemInstruction\":{\"parts\":[{\"text\":\"" + escapeJson(sysInst) + "\"}]}," +
-                "\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"" + escapeJson(fullPrompt) + "\"}]}]," +
-                "\"generationConfig\":{\"temperature\":0.90,\"maxOutputTokens\":250}," +
-                "\"safetySettings\":[" +
-                "{\"category\":\"HARM_CATEGORY_HARASSMENT\",\"threshold\":\"BLOCK_NONE\"}," +
-                "{\"category\":\"HARM_CATEGORY_HATE_SPEECH\",\"threshold\":\"BLOCK_NONE\"}," +
-                "{\"category\":\"HARM_CATEGORY_SEXUALLY_EXPLICIT\",\"threshold\":\"BLOCK_NONE\"}," +
-                "{\"category\":\"HARM_CATEGORY_DANGEROUS_CONTENT\",\"threshold\":\"BLOCK_NONE\"}," +
-                "{\"category\":\"HARM_CATEGORY_CIVIC_INTEGRITY\",\"threshold\":\"BLOCK_NONE\"}" +
-                "]}";
+Ответь ему прямо сейчас в лицо от первого лица без цитирования, без кавычек и без шаблонных фраз. Уничтожь и разнеси его жестким, яростным матом:";
+        }
 
-            try (java.io.OutputStream os = conn.getOutputStream()) {
-                os.write(jsonPayload.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-            }
+        String jsonPayload = "{\"systemInstruction\":{\"parts\":[{\"text\":\"" + escapeJson(sysInst) + "\"}]}," +
+            "\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"" + escapeJson(fullPrompt) + "\"}]}]," +
+            "\"generationConfig\":{\"temperature\":0.86,\"maxOutputTokens\":90}," +
+            "\"safetySettings\":[" +
+            "{\"category\":\"HARM_CATEGORY_HARASSMENT\",\"threshold\":\"BLOCK_NONE\"}," +
+            "{\"category\":\"HARM_CATEGORY_HATE_SPEECH\",\"threshold\":\"BLOCK_NONE\"}," +
+            "{\"category\":\"HARM_CATEGORY_SEXUALLY_EXPLICIT\",\"threshold\":\"BLOCK_NONE\"}," +
+            "{\"category\":\"HARM_CATEGORY_DANGEROUS_CONTENT\",\"threshold\":\"BLOCK_NONE\"}," +
+            "{\"category\":\"HARM_CATEGORY_CIVIC_INTEGRITY\",\"threshold\":\"BLOCK_NONE\"}" +
+            "]}";
 
-            int code = conn.getResponseCode();
-            if (code == 200) {
-                java.io.InputStream is = conn.getInputStream();
-                java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
-                byte[] buf = new byte[2048];
-                int r;
-                while ((r = is.read(buf)) != -1) {
-                    baos.write(buf, 0, r);
-                }
-                String resp = new String(baos.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
+        String[] fastModels = {
+            "gemini-flash-lite-latest",
+            "gemini-3.1-flash-lite",
+            "gemma-4-26b-a4b-it",
+            "gemini-3-flash-preview",
+            "gemini-flash-latest"
+        };
+
+        for (int attempt = 0; attempt < 2; attempt++) {
+            for (String mName : fastModels) {
                 try {
-                    org.json.JSONObject root = new org.json.JSONObject(resp);
-                    org.json.JSONArray candidates = root.optJSONArray("candidates");
-                    if (candidates != null && candidates.length() > 0) {
-                        org.json.JSONObject candidate = candidates.getJSONObject(0);
-                        org.json.JSONObject contentObj = candidate.optJSONObject("content");
-                        if (contentObj != null) {
-                            org.json.JSONArray parts = contentObj.optJSONArray("parts");
-                            if (parts != null && parts.length() > 0) {
-                                String text = parts.getJSONObject(0).optString("text");
-                                if (text != null && text.trim().length() > 3) {
-                                    return cleanResponse(text);
+                    String urlString = "https://generativelanguage.googleapis.com/v1beta/models/" + mName + ":generateContent?key=" + getApiKey();
+                    java.net.URL u = new java.net.URL(urlString);
+                    java.net.HttpURLConnection conn = (java.net.HttpURLConnection) u.openConnection();
+                    conn.setRequestMethod("POST");
+                    conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+                    conn.setConnectTimeout(3000);
+                    conn.setReadTimeout(4500);
+                    conn.setDoOutput(true);
+
+                    try (java.io.OutputStream os = conn.getOutputStream()) {
+                        os.write(jsonPayload.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                    }
+
+                    int code = conn.getResponseCode();
+                    if (code == 200) {
+                        java.io.InputStream is = conn.getInputStream();
+                        java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+                        byte[] buf = new byte[2048];
+                        int rCount;
+                        while ((rCount = is.read(buf)) != -1) {
+                            baos.write(buf, 0, rCount);
+                        }
+                        String resp = new String(baos.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
+                        try {
+                            org.json.JSONObject root = new org.json.JSONObject(resp);
+                            org.json.JSONArray candidates = root.optJSONArray("candidates");
+                            if (candidates != null && candidates.length() > 0) {
+                                org.json.JSONObject candidate = candidates.getJSONObject(0);
+                                org.json.JSONObject contentObj = candidate.optJSONObject("content");
+                                if (contentObj != null) {
+                                    org.json.JSONArray parts = contentObj.optJSONArray("parts");
+                                    if (parts != null && parts.length() > 0) {
+                                        String text = parts.getJSONObject(0).optString("text");
+                                        if (text != null && text.trim().length() > 3) {
+                                            return cleanResponse(text);
+                                        }
+                                    }
                                 }
                             }
+                        } catch (Exception parseEx) {
+                            parseEx.printStackTrace();
                         }
                     }
-                } catch (Exception parseEx) {
-                    parseEx.printStackTrace();
-                }
+                } catch (Exception ignored) {}
             }
-        } catch (Exception ignored) {
         }
 
         Random rand = new Random();
