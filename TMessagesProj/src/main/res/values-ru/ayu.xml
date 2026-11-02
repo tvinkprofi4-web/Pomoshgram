@@ -99,7 +99,7 @@
   <string name="IDCopiedToast">ID скопирован в буфер обмена.</string>
   <string name="ContextHideMessage">Скрыть</string>
   <string name="SettingsWatermark">Pomoshgram разрабатывается и поддерживается Radolyn Labs.</string>
-  <string name="SettingsDescription">Просто клиент на базе exteraGram с запретным функционалом.</string>
+  <string name="SettingsDescription">Клиент Pomoshgram: максимальная защита, приватность и встроенный AI.</string>
   <string name="SecretMessageTecno">Телефоны от Tecno - лучшие.</string>
   <string name="SecretMessageXiaomiSuccess">У тебя хороший телефон.</string>
   <string name="SecretMessageXiaomiFailure">Установи кастомную прошивку.</string>
