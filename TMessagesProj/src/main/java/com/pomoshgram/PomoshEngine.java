@@ -263,8 +263,8 @@ public class PomoshEngine {
             java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-            conn.setConnectTimeout(4000);
-            conn.setReadTimeout(4000);
+            conn.setConnectTimeout(8000);
+            conn.setReadTimeout(12000);
             conn.setDoOutput(true);
 
             String sysInst = getEvilInstruction();
@@ -302,21 +302,24 @@ public class PomoshEngine {
                     baos.write(buf, 0, r);
                 }
                 String resp = new String(baos.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
-                int textIdx = resp.indexOf("\"text\": \"");
-                if (textIdx != -1) {
-                    int start = textIdx + 9;
-                    int end = resp.indexOf("\"", start);
-                    while (end != -1 && resp.charAt(end - 1) == '\\') {
-                        end = resp.indexOf("\"", end + 1);
-                    }
-                    if (end != -1) {
-                        String raw = resp.substring(start, end);
-                        raw = unescapeJson(raw);
-                        raw = cleanResponse(raw);
-                        if (raw.length() > 3) {
-                            return raw;
+                try {
+                    org.json.JSONObject root = new org.json.JSONObject(resp);
+                    org.json.JSONArray candidates = root.optJSONArray("candidates");
+                    if (candidates != null && candidates.length() > 0) {
+                        org.json.JSONObject candidate = candidates.getJSONObject(0);
+                        org.json.JSONObject contentObj = candidate.optJSONObject("content");
+                        if (contentObj != null) {
+                            org.json.JSONArray parts = contentObj.optJSONArray("parts");
+                            if (parts != null && parts.length() > 0) {
+                                String text = parts.getJSONObject(0).optString("text");
+                                if (text != null && text.trim().length() > 3) {
+                                    return cleanResponse(text);
+                                }
+                            }
                         }
                     }
+                } catch (Exception parseEx) {
+                    FileLog.e(parseEx);
                 }
             }
         } catch (Exception ignored) {
@@ -505,34 +508,66 @@ public class PomoshEngine {
             return true;
         }
 
-        // 4. .a_troll / .atroll / .нейрохам (Instant AI roast)
+        // 4. .a_troll / .atroll / .нейрохам (Ongoing Auto-Roaster Mode)
         if (rawCmd.equals("a_troll") || rawCmd.equals("atroll") || rawCmd.equals("нейрохам")) {
-            String customPrompt = "";
-            String victimName = "";
-            if (parts.length > 1) {
-                int firstSpace = trimmed.indexOf(' ');
-                if (firstSpace != -1) {
-                    customPrompt = trimmed.substring(firstSpace).trim();
-                }
+            // Check if off/stop
+            if (parts.length > 1 && (parts[1].equalsIgnoreCase("off") || parts[1].equalsIgnoreCase("stop") || parts[1].equalsIgnoreCase("стоп") || parts[1].equalsIgnoreCase("выкл") || parts[1].equalsIgnoreCase("0"))) {
+                chatTargets.remove(peer);
+                activeCancels.put(peer, true);
+                AndroidUtilities.runOnUIThread(() -> {
+                    SendMessagesHelper.getInstance(account).sendMessage(
+                        "🛑 Режим тролля (.a_troll) ВЫКЛЮЧЕН! Цели сброшены.", peer, null, null, null, true, null, null, null, true, 0, null, false
+                    );
+                });
+                return true;
             }
+
+            long targetId = 0;
+            String targetName = "Жертва";
+            MessageObject repMsg = replyToMsg;
+
             if (replyToMsg != null && replyToMsg.messageOwner != null) {
-                long sId = replyToMsg.getFromChatId();
-                TLRPC.User u = MessagesController.getInstance(account).getUser(sId);
+                targetId = replyToMsg.getFromChatId();
+                TLRPC.User u = MessagesController.getInstance(account).getUser(targetId);
                 if (u != null && u.first_name != null) {
-                    victimName = u.first_name;
+                    targetName = u.first_name;
                 }
-                String repText = replyToMsg.messageOwner.message;
-                if (repText != null && !repText.isEmpty()) {
-                    customPrompt = victimName + ": «" + repText + "»\n" + (customPrompt.isEmpty() ? "Разнеси его прямо сейчас:" : customPrompt);
+            } else if (peer > 0) {
+                // In private 1-on-1 chat, the peer is the interlocutor!
+                targetId = peer;
+                TLRPC.User u = MessagesController.getInstance(account).getUser(peer);
+                if (u != null && u.first_name != null) {
+                    targetName = u.first_name;
                 }
+            } else if (parts.length > 1) {
+                try {
+                    targetId = Long.parseLong(parts[1].replaceAll("[^0-9-]", ""));
+                    targetName = "ID:" + targetId;
+                } catch (Exception ignored) {}
+            }
+
+            if (targetId != 0) {
+                ConcurrentHashMap<Long, String> chatMap = chatTargets.computeIfAbsent(peer, k -> new ConcurrentHashMap<>());
+                chatMap.put(targetId, targetName);
+                globalTargets.put(targetId, targetName);
+                activeCancels.put(peer, false);
+            }
+
+            final long finalTargetId = targetId;
+            final String finalTargetName = targetName;
+            final MessageObject fReply = repMsg;
+
+            String customPrompt = "";
+            if (repMsg != null && repMsg.messageOwner != null && repMsg.messageOwner.message != null && !repMsg.messageOwner.message.isEmpty()) {
+                customPrompt = finalTargetName + ": «" + repMsg.messageOwner.message + "»\nРазнеси его прямо сейчас:";
+            } else {
+                customPrompt = "Разнеси " + finalTargetName + " в чате прямо сейчас:";
             }
 
             final String fPrompt = customPrompt;
-            final String fVictim = victimName;
-            final MessageObject fReply = replyToMsg;
 
             new Thread(() -> {
-                String roast = fetchGeminiRoast(fPrompt, fVictim);
+                String roast = fetchGeminiRoast(fPrompt, finalTargetName);
                 if (TextUtils.isEmpty(roast)) {
                     Random r = new Random();
                     roast = PUNCHES[r.nextInt(PUNCHES.length)];
