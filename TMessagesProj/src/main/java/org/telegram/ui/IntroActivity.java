@@ -773,9 +773,9 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
             loadTexture(v -> {
                 Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
                 if (BuildVars.isBetaApp()) {
-                    paint.setColor(0xFF9570FF);
+                    paint.setColor(0xFF131728);
                 } else {
-                    paint.setColor(0xFF9570FF);
+                    paint.setColor(0xFF131728);
                 }
                 int size = AndroidUtilities.dp(ICON_HEIGHT_DP);
                 Bitmap bm = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
