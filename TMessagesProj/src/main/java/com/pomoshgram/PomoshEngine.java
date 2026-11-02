@@ -467,9 +467,10 @@ public class PomoshEngine {
                 ConcurrentHashMap<Long, String> chatMap = chatTargets.get(peer);
                 if (chatMap != null) chatMap.remove(targetId);
                 globalTargets.remove(targetId);
+                final String unMsg = "✅ Цель " + targetId + " снята с прицела.";
                 AndroidUtilities.runOnUIThread(() -> {
                     SendMessagesHelper.getInstance(account).sendMessage(
-                        "✅ Цель " + targetId + " снята с прицела.", peer, null, null, null, true, null, null, null, true, 0, null, false
+                        unMsg, peer, null, null, null, true, null, null, null, true, 0, null, false
                     );
                 });
             } else {
