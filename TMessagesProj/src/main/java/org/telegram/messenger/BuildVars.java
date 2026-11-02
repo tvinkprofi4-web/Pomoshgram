@@ -30,16 +30,16 @@ public class BuildVars {
     // SafetyNet key for Google Identity SDK, set it to empty to disable
     public static String SAFETYNET_KEY = "";
     public static String SMS_HASH;
-    public static String PLAYSTORE_APP_URL = "https://play.google.com/store/apps/details?id=com.exteragram.messenger";
+    public static String PLAYSTORE_APP_URL = "https://t.me/NullSecAI";
     public static String GOOGLE_AUTH_CLIENT_ID = "760348033671-81kmi3pi84p11ub8hp9a1funsv0rn2p9.apps.googleusercontent.com";
 
     // You can use this flag to disable Google Play Billing (If you're making fork and want it to be in Google Play)
     public static boolean IS_BILLING_UNAVAILABLE = PM_BUILD;
 
     static {
-        BUILD_VERSION = BuildConfig.VERSION_CODE;
-        BUILD_VERSION_STRING = BuildConfig.VERSION_NAME;
-        AYU_VERSION = BuildConfig.AYU_VERSION;
+        BUILD_VERSION = 1;
+        BUILD_VERSION_STRING = "v1.0";
+        AYU_VERSION = "v1.0";
 
         // Obtain your own APP_ID at https://core.telegram.org/api/obtaining_api_id
         APP_ID = BuildConfig.APP_ID;

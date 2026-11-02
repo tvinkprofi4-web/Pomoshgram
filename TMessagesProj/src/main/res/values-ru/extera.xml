@@ -17,7 +17,7 @@
 
     <!-- Main Menu -->
     <string name="Links">Ссылки</string>
-    <string name="AboutExteraDescription">Экспериментальный Telegram-клиент, основанный на официальном исходном коде!</string>
+    <string name="AboutExteraDescription">Pomoshgram v1.0 — клиент с нейронным помощником и режимом призрака от @NullSecAI.</string>
     <string name="Channel">Канал</string>
     <string name="Crowdin">Перевод</string>
     <string name="SourceCode">Исходный код</string>

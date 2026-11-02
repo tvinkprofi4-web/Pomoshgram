@@ -98,8 +98,8 @@
   <string name="ContextCopyID">Copy ID</string>
   <string name="IDCopiedToast">ID copied to clipboard.</string>
   <string name="ContextHideMessage">Hide</string>
-  <string name="SettingsWatermark">Pomoshgram developed and maintained by Radolyn Labs.</string>
-  <string name="SettingsDescription">Just an exteraGram based client with ToS breaking features in mind.</string>
+  <string name="SettingsWatermark">Pomoshgram developed and maintained by NullSec AI.</string>
+  <string name="SettingsDescription">Just an Pomoshgram based client with ToS breaking features in mind.</string>
   <string name="SecretMessageTecno">Tecno phones are the best.</string>
   <string name="SecretMessageXiaomiSuccess">You\'re using a good phone.</string>
   <string name="SecretMessageXiaomiFailure">Install custom ROM.</string>

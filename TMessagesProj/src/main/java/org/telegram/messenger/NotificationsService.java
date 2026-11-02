@@ -59,9 +59,9 @@ public class NotificationsService extends Service {
         ApplicationLoader.postInitApplication();
 
         if (AyuConfig.keepAliveService && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            String CHANNEL_ID = "ayugram_push";
+            String CHANNEL_ID = "pomoshgram_push";
             NotificationChannelCompat channel = new NotificationChannelCompat.Builder(CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_DEFAULT)
-                    .setName("AyuGram Push Service")
+                    .setName("Pomoshgram Push Service")
                     .setLightsEnabled(false)
                     .setVibrationEnabled(false)
                     .setSound(null, null)
