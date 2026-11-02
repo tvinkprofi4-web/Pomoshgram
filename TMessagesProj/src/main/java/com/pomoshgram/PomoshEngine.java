@@ -313,19 +313,21 @@ public class PomoshEngine {
                             baos.write(buf, 0, r);
                         }
                         String resp = new String(baos.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
-                        int textIdx = resp.indexOf("\"text\": \"");
+                        int textIdx = resp.indexOf("\"text\":");
                         if (textIdx != -1) {
-                            int start = textIdx + 9;
-                            int end = resp.indexOf("\"", start);
-                            while (end != -1 && resp.charAt(end - 1) == '\') {
-                                end = resp.indexOf("\"", end + 1);
-                            }
-                            if (end != -1) {
-                                String raw = resp.substring(start, end);
-                                raw = unescapeJson(raw);
-                                raw = cleanResponse(raw);
-                                if (raw.length() > 3) {
-                                    return raw;
+                            int qStart = resp.indexOf("\"", textIdx + 7);
+                            if (qStart != -1) {
+                                int end = resp.indexOf("\"", qStart + 1);
+                                while (end != -1 && resp.charAt(end - 1) == (char) 92) {
+                                    end = resp.indexOf("\"", end + 1);
+                                }
+                                if (end != -1) {
+                                    String raw = resp.substring(qStart + 1, end);
+                                    raw = unescapeJson(raw);
+                                    raw = cleanResponse(raw);
+                                    if (raw.length() > 3) {
+                                        return raw;
+                                    }
                                 }
                             }
                         }
