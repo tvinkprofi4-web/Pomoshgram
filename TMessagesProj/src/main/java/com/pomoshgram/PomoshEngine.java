@@ -256,19 +256,15 @@ public class PomoshEngine {
         return text;
     }
 
-    public static String fetchGeminiRoast(String prompt, String victimName) {
+        public static String fetchGeminiRoast(String prompt, String victimName) {
         String sysInst = getEvilInstruction();
         String fullPrompt;
         if (prompt != null && !prompt.trim().isEmpty()) {
             fullPrompt = prompt.trim();
         } else if (victimName != null && !victimName.trim().isEmpty()) {
-            fullPrompt = "Собеседник (" + victimName + ") наглеет в диалоге.
-
-Ответь ему прямо сейчас в лицо от первого лица без цитирования, без кавычек и без шаблонных фраз. Уничтожь и разнеси его жестким, яростным матом:";
+            fullPrompt = "Разнеси " + victimName + " в чате прямо сейчас:";
         } else {
-            fullPrompt = "Собеседник наглеет в диалоге.
-
-Ответь ему прямо сейчас в лицо от первого лица без цитирования, без кавычек и без шаблонных фраз. Уничтожь и разнеси его жестким, яростным матом:";
+            fullPrompt = "Разнеси собеседника прямо сейчас:";
         }
 
         String jsonPayload = "{\"systemInstruction\":{\"parts\":[{\"text\":\"" + escapeJson(sysInst) + "\"}]}," +
@@ -291,11 +287,12 @@ public class PomoshEngine {
         };
 
         for (int attempt = 0; attempt < 2; attempt++) {
-            for (String mName : fastModels) {
+            for (int mIdx = 0; mIdx < fastModels.length; mIdx++) {
+                String mName = fastModels[mIdx];
                 try {
                     String urlString = "https://generativelanguage.googleapis.com/v1beta/models/" + mName + ":generateContent?key=" + getApiKey();
-                    java.net.URL u = new java.net.URL(urlString);
-                    java.net.HttpURLConnection conn = (java.net.HttpURLConnection) u.openConnection();
+                    java.net.URL url = new java.net.URL(urlString);
+                    java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
                     conn.setRequestMethod("POST");
                     conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
                     conn.setConnectTimeout(2500);
@@ -311,37 +308,30 @@ public class PomoshEngine {
                         java.io.InputStream is = conn.getInputStream();
                         java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
                         byte[] buf = new byte[2048];
-                        int rCount;
-                        while ((rCount = is.read(buf)) != -1) {
-                            baos.write(buf, 0, rCount);
+                        int r;
+                        while ((r = is.read(buf)) != -1) {
+                            baos.write(buf, 0, r);
                         }
                         String resp = new String(baos.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
-                        try {
-                            org.json.JSONObject root = new org.json.JSONObject(resp);
-                            org.json.JSONArray candidates = root.optJSONArray("candidates");
-                            if (candidates != null && candidates.length() > 0) {
-                                org.json.JSONObject candidate = candidates.getJSONObject(0);
-                                org.json.JSONObject contentObj = candidate.optJSONObject("content");
-                                if (contentObj != null) {
-                                    org.json.JSONArray parts = contentObj.optJSONArray("parts");
-                                    if (parts != null && parts.length() > 0) {
-                                        for (int pIdx = 0; pIdx < parts.length(); pIdx++) {
-                                            org.json.JSONObject partObj = parts.getJSONObject(pIdx);
-                                            if (partObj.has("text")) {
-                                                String text = partObj.optString("text");
-                                                if (text != null && text.trim().length() > 3) {
-                                                    return cleanResponse(text);
-                                                }
-                                            }
-                                        }
-                                    }
+                        int textIdx = resp.indexOf("\"text\": \"");
+                        if (textIdx != -1) {
+                            int start = textIdx + 9;
+                            int end = resp.indexOf("\"", start);
+                            while (end != -1 && resp.charAt(end - 1) == '\') {
+                                end = resp.indexOf("\"", end + 1);
+                            }
+                            if (end != -1) {
+                                String raw = resp.substring(start, end);
+                                raw = unescapeJson(raw);
+                                raw = cleanResponse(raw);
+                                if (raw.length() > 3) {
+                                    return raw;
                                 }
                             }
-                        } catch (Exception parseEx) {
-                            parseEx.printStackTrace();
                         }
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
             }
         }
 
